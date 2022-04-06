@@ -1,0 +1,90 @@
+---
+title: "GWG_M1_220407"
+author: "Kristen James"
+date: "4/5/2022"
+output: html_document
+---
+
+# Set Up
+
+Setting up a markdown includes checking the working directory, and loading packages, and data. You can also set global formatting options for plots or knitting the document depending on the purpose of the markdown.
+
+```{r load libraries}
+getwd() # the path will be where you saved this file
+
+# Install qtl2 if needed. Un-comment out code below
+#install.packages(qtl2)
+
+# load library
+library(qtl2)
+```
+
+# Create Cross Object
+
+Note, for the cross to generate correctly place the following files in the qtl2 directory.
+
+Make sure that these files are "clean" - there are no sample duplicates, the sample names are consistent in each file (e.g., DOChln_1, DOChln_2...), empty cells are consistently filled with NA, that factored covariates are dummy coded (using 0 and 1s).
+
+```{r create cross object, include=FALSE}
+
+```
+
+Inspect the cross. 
+
+```{r inspect cross object}
+DO
+```
+
+I prefer to save objects in their own chunk. This decreases the chance that I write over a file accidentally. 
+
+```{r save cross object}
+getwd()
+# Change the path as needed to create the folder in the qtl2 folder
+# A warning will be generated if the folder already exists 
+# The folder will not be written over 
+dir.create("qtl_objects", recursive = TRUE)
+```
+
+# Calculate genotype probabilities
+
+```{r Genotype and allele probability}
+# Genotype probabilities 
+pr <- calc_genoprob(DO, error_prob = 0.002)
+# Allele probabilities
+apr <- genoprob_to_alleleprob(pr)
+```
+
+Genome probabilities take a while to calculate. Save this so that we can load it into the environment next time. 
+
+Note, use a consistent naming strategy. Here, GWG is the prefix for our Genetics Working Group (e.g. DOChln, DOMoms, DOF1, CC, etc.) followed by the description of the object (genome probabilities) and the date in year, month, day format. 
+
+```{r Save probabilities}
+saveRDS(pr, "qtl_objects/GWG_gpr_220407.rds") 
+```
+
+We need to account for the relatedness between the mice.
+```{r kinship}
+#kinship matrix, leave one chromosome out method
+k <- calc_kinship(apr, "loco")
+head(k)
+dim(k)
+```
+
+We also need to account for covariates including sex and DO generation. 
+
+```{r covariates}
+# X covariate
+Xcovar <- get_x_covar(DO)
+head(Xcovar)
+
+# other covariate
+cov <- DO$covar # you can pull out data frames from the cross object (list)
+colnames(cov)
+
+cov <- subset(cov, select = c(ngen_42, ngen_43, ngen_44))
+str(cov)
+cov$ngen_42 <- as.numeric(cov$ngen_42)
+cov$ngen_43 <- as.numeric(cov$ngen_43)
+cov$ngen_44 <- as.numeric(cov$ngen_44)
+```
+
