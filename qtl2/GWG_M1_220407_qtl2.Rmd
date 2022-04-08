@@ -13,7 +13,7 @@ Setting up a markdown includes checking the working directory, and loading packa
 getwd() # the path will be where you saved this file
 
 # Install qtl2 if needed. Un-comment out code below
-#install.packages(qtl2)
+install.packages("qtl2")
 
 # load library
 library(qtl2)
@@ -26,12 +26,30 @@ Note, for the cross to generate correctly place the following files in the qtl2 
 Make sure that these files are "clean" - there are no sample duplicates, the sample names are consistent in each file (e.g., DOChln_1, DOChln_2...), empty cells are consistently filled with NA, that factored covariates are dummy coded (using 0 and 1s).
 
 ```{r create cross object, include=FALSE}
+chr <- c(1:19, "X")
 
+write_control_file("GWGtutorial_DOChln_cross.json",
+                   crosstype="do",
+                   description="GWGtutorial_with_DOChln_data",
+                   founder_geno_file=paste0("GM/GM_foundergeno", chr, ".csv"),
+                   founder_geno_transposed=TRUE,
+                   gmap_file=paste0("GM/GM_gmap", chr, ".csv"),
+                   pmap_file=paste0("GM/GM_pmap", chr, ".csv"),
+                   geno_file=paste0("GenotypesProcessed/DOChln_GM_geno", chr, ".csv"),
+                   geno_transposed=TRUE,
+                   geno_codes=list(A=1, H=2, B=3),
+                   xchr="X",
+                   pheno_file="BASELINE_DOChln_phen288.csv", 
+                   covar_file="BASELINE_DOChln_covar288.csv", 
+                   sex_covar="sex",
+                   sex_codes=list(F="Female", M="Male"),
+                   crossinfo_covar="ngen")
 ```
 
 Inspect the cross. 
 
 ```{r inspect cross object}
+DO <- read_cross2(file = "GWGtutorial_DOChln_cross.json")
 DO
 ```
 
